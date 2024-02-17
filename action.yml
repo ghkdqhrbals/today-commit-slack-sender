@@ -1,5 +1,6 @@
-name: Today commits Slack Alert
-description: 'Send a Slack message in a channel with today commit messages!'
+name: "Today commits Slack Alert"
+description: "Send a Slack message in a channel with today commit messages!"
+author: "Kevin Hwangbo <ghkdqhrbals@gmail.com>"
 inputs:
   channel-id: # channel id to post message when using bot token
     description: 'Slack channel ID where message will be posted. Needed if using bot token'
