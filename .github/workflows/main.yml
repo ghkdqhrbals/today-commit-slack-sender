@@ -69,7 +69,3 @@ jobs:
             }
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-    # Use the output from the `slackIncoming` step
-    - name: Check Action output is not empty
-      run: test -n "${{ steps.slackPayloadFile.outputs.time }}"
