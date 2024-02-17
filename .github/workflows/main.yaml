@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  schedule:
+    - cron: '59 15 * * *' # 분 시 일 월 요일. UTC +9 매일 23:59 에 실행
+
+jobs:
+  fetch-commits-and-send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch commit messages
+        id: todayCommitMessages
+        run: |
+          today=$(date +'%Y-%m-%d')' 00:00:00'
+          nextday=$(date -d '+1 day' +'%Y-%m-%d')' 00:00:00'
+          commit_messages=$(git log --since="$today" --until="$nextday" --pretty=format:"**%ad** | **msg**: %s | **author**: %an" --date=format:'%H:%M:%S' | sed 's/$/ \\n /' | tr -d '\n')
+          echo "COMMIT_MESSAGES=$commit_messages" >> $GITHUB_OUTPUT
+      - name: Get today date
+        id: todayDate
+        run: |
+          TODAY_ONLY_DATE=$(date +'%Y-%m-%d')
+          echo "TODAY_ONLY_DATE set to: $TODAY_ONLY_DATE"
+          echo "TODAY_DATE=$TODAY_ONLY_DATE" >> $GITHUB_OUTPUT
+          
+          echo $commit_messages
+      - name: Post to a Slack channel
+        id: slackSend
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          # For posting a rich message using Block Kit
+          payload: |
+            {
+              "text": "Today's commits",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.todayDate.outputs.TODAY_DATE }} \n ${{ steps.todayCommitMessages.outputs.COMMIT_MESSAGES }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
